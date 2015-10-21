@@ -1,0 +1,687 @@
+
+<!doctype html>
+<html>
+    <head>
+        <title>Multiuser Sketchpad</title>
+        <meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+        <style type="text/css">
+            body {
+                background-color:#f0f0f0;
+                margin: 0px;
+            }
+
+            #panel {
+                position: absolute;
+                width: 180px;
+                font-family: Helvetica, Arial;
+                font-size:13px;
+                color: #606060;
+                background-color:#ffffff;
+                border-right: 1px solid #ddd;
+                float: left;
+            }
+
+            #messages {
+
+                color: #707070;
+
+            }
+
+            #container {
+                position: absolute;
+                top: 0px;
+                left: 0px;
+            }
+
+            #canvas {
+                position: absolute;
+
+            }
+
+            hr {
+
+                border: 0;
+                height: 1px;
+                background-color: #ccc;
+                margin: 20px 0px;
+
+            }
+
+            a {
+                color: #404040;
+                cursor: pointer;
+                text-decoration: underline;
+            }
+
+            a:hover {
+                text-decoration: none;
+            }
+
+            canvas {
+                cursor: crosshair;
+            }
+
+            input {
+
+                width: 100%;
+                font-family: Helvetica, Arial;
+                font-size:13px;
+                color: #808080;
+                border: 0;
+                background-color:#f0f0f0;
+            }
+        </style>
+    </head>
+    <body>
+
+        <canvas id="canvas"></canvas>
+
+        <div id="container"></div>
+
+        <div id="panel">
+            <table style="width: 100%; padding: 10px;"><tr><td>
+
+                <p><strong>Multiuser Sketchpad<br />Originally by mrdoob</strong></p>
+                Save: <a onclick="saveDrawing()">.png</a><br />
+
+                <hr />
+
+            </td></tr>
+            <tr><td id="messages" style="vertical-align: bottom">
+
+                <div id="messagesDiv" style="overflow: hidden">
+                </div>
+
+            </td></tr>
+            <tr><td>
+
+                <br />
+                <strong><span id="nickname"></span></strong> <a onclick="changeNickname()">Change</a><br />
+                <input id="inputbox" type="text" maxlength="40" placeholder="..." />
+
+            </td></tr></table>
+        </div>
+
+        <script type="text/javascript">
+
+            var connection, users = {}, mouseX = 0, mouseY = 0, oldMouseX = 0, oldMouseY = 0, mouseDown = false,
+            spaceKeyDown = false, panning = false, mouseXOnPan = 0, mouseYOnPan = 0, canvasXOnPan = 0, canvasYOnPan = 0,
+            commands = [], messagesArray = [], lastMessage, currentUserId;
+
+            var PANEL_WIDTH = 180,
+            SCREEN_WIDTH = window.innerWidth,
+            SCREEN_HEIGHT = window.innerHeight,
+            CANVAS_WIDTH = 2048,
+            CANVAS_HEIGHT = 2048;
+
+            var USER_LIST = 0, USER_ID = 1, USER_CONNECTED = 2, USER_DISCONNECTED = 3, COMMAND = 4,
+            COMMAND_SETNICKNAME = 0, COMMAND_POSITION = 1, COMMAND_MOUSEDOWN = 2, COMMAND_MESSAGE = 3, COMMAND_COLOR = 4;
+
+            if ( window["WebSocket"] ) {
+
+                connection = new WebSocket("ws://devfun.sedonami.com/");
+
+                connection.onclose = function( event ) {
+
+                    addServerMessage( 'Disconnected :/' );
+
+                }
+
+                connection.onmessage = function( event ) {
+
+                    var dataArray = event.data.split( ',' );
+                    var dataLength = dataArray.length;
+                    var userId = dataArray[ 0 ];
+                    var position = 1;
+
+                    switch ( parseInt( dataArray[ position++ ] ) ) {
+
+                        case USER_ID:
+                            var name = dataArray[ position++ ];
+                            var nicknameSpan = document.getElementById( 'nickname' );
+                            nicknameSpan.innerHTML = name;
+                            currentUserId = userId;
+                            break;
+
+                        case USER_LIST:
+
+                            while ( position < dataLength ) {
+
+                                var id = dataArray[ position++ ];
+
+                                if ( id ) {
+
+                                    addUser( id, id, dataArray[ position++ ] );
+
+                                }
+
+                            }
+
+                            break;
+
+                        case USER_CONNECTED:
+                            addUser( userId, userId, dataArray[ 3 ] );
+                            addMessage( userId, "Connected :)");
+                            break;
+
+                        case USER_DISCONNECTED:
+                            addMessage( userId, "Disconnected :/");
+                            removeUser( userId );
+
+                            break;
+
+                        case COMMAND:
+
+                            var userMouseX = 0;
+                            var userMouseY = 0;
+                            var count = 0;
+
+                            if(users[ userId ] === undefined) {
+                                addUser(userId, userId, userId.toString());
+                            }
+
+                            while ( position < dataLength ) {
+
+                                if (count ++ > 10000 ) {
+
+                                    return;
+
+                                }
+
+                                switch ( parseInt( dataArray[ position++ ] ) ) {
+
+                                    case COMMAND_COLOR:
+
+                                        users[ userId ].color = parseInt( dataArray[ position++ ] );
+
+                                        break;
+
+                                    case COMMAND_SETNICKNAME:
+                                        var newNickname = dataArray[ position++ ];
+                                        addMessage( userId, "Is now known as "+ newNickname);
+                                        setUserNickname( userId,  newNickname);
+
+                                        break;
+
+                                    case COMMAND_POSITION:
+
+                                        var x = parseInt( dataArray[ position++ ], 16 );
+                                        var y = parseInt( dataArray[ position++ ], 16 );
+
+                                        userMouseX += x ? x : 0;
+                                        userMouseY += y ? y : 0;
+
+                                        moveUser( userId, userMouseX, userMouseY );
+
+                                        break;
+
+                                    case COMMAND_MOUSEDOWN:
+                                        users[ userId ].mouseDown = dataArray[ position++ ] == '1';
+
+                                        break;
+
+                                    case COMMAND_MESSAGE:
+
+                                        addMessage( userId, dataArray[ position++ ] );
+
+                                        break;
+
+                                }
+
+                            }
+
+                            break;
+
+
+                    }
+
+                };
+            }
+
+            var COLOR = 0;
+
+            var colorBlackButton = document.getElementById( 'colorBlackButton' );
+            var colorWhiteButton = document.getElementById( 'colorWhiteButton' );
+
+            var container = document.getElementById( 'container' );
+            container.style.left = PANEL_WIDTH + 'px';
+            container.addEventListener( 'mouseover', function( event ) { event.preventDefault(); }, false );
+            container.addEventListener( 'mousedown', function( event ) { event.preventDefault(); }, false );
+
+            var panel = document.getElementById( 'panel' );
+            panel.style.width = PANEL_WIDTH + 'px';
+
+            var canvas = document.getElementById( 'canvas' );
+            canvas.width = CANVAS_WIDTH;
+            canvas.height = CANVAS_HEIGHT;
+            canvas.style.left = PANEL_WIDTH + 'px';
+
+            var context = canvas.getContext( '2d' );
+            context.lineWidth = 2.8;
+            context.fillStyle = 'rgb(255, 255, 255)';
+            context.fillRect( 0, 0, CANVAS_WIDTH, CANVAS_HEIGHT );
+
+            canvas.addEventListener( 'mousedown', onCanvasMouseDown, false );
+            document.addEventListener( 'mouseup', onDocumentMouseUp, false );
+            document.addEventListener( 'mousemove', onDocumentMouseMove, false );
+            document.addEventListener( 'keydown', onDocumentKeyDown, false );
+            document.addEventListener( 'keyup', onDocumentKeyUp, false );
+
+            window.addEventListener( 'resize', onWindowResize, false );
+
+            var nicknameSpan = document.getElementById( 'nickname' );
+
+            var messages = document.getElementById( 'messages' );
+            var messagesDiv = document.getElementById( 'messagesDiv' );
+            messagesDiv.style.minHeight = '0px';
+
+            var inputbox = document.getElementById( 'inputbox' );
+            inputbox.addEventListener( 'keypress', onInputBoxKeyPress, false );
+
+            onWindowResize();
+
+            setInterval( broadcast, 100 );
+
+            function onCanvasMouseDown( event ) {
+
+                event.preventDefault();
+
+                inputbox.blur();
+
+                if ( spaceKeyDown ) {
+
+                    panning = true;
+                    mouseXOnPan = event.clientX;
+                    mouseYOnPan = event.clientY;
+                    canvasXOnPan = canvas.offsetLeft;
+                    canvasYOnPan = canvas.offsetTop;
+
+                    return;
+
+                }
+
+                mouseDown = true;
+
+
+                var scrollLeft = Math.max(document.documentElement.scrollLeft, document.body.scrollLeft);
+                var scrollTop = Math.max(document.documentElement.scrollTop, document.body.scrollTop);
+
+                //mouseX = event.clientX - canvas.offsetLeft;
+                //mouseY = event.clientY - canvas.offsetTop;
+                mouseX = (event.clientX  + scrollLeft) - canvas.offsetLeft;
+                mouseY = (event.clientY + scrollTop) - canvas.offsetTop;
+
+                //commands.push( COMMAND_MOUSEDOWN, 1 );
+                // send right away
+                connection.send("4,"+ COMMAND_MOUSEDOWN +",1");
+                commands.push( COMMAND_POSITION, mouseX.toString( 16 ), mouseY.toString( 16 ) );
+
+            }
+
+            function onDocumentMouseUp( event ) {
+
+                panning = false;
+                mouseDown = false;
+
+                //commands.push( COMMAND_MOUSEDOWN, 0 );
+                // send right away
+                connection.send("4,"+ COMMAND_MOUSEDOWN +",0");
+
+            }
+
+            function onDocumentMouseMove( event ) {
+
+                oldMouseX = mouseX;
+                oldMouseY = mouseY;
+
+                //mouseX = event.clientX - canvas.offsetLeft;
+                //mouseY = event.clientY - canvas.offsetTop;
+                                 var scrollLeft = Math.max(document.documentElement.scrollLeft, document.body.scrollLeft);
+                                                  var scrollTop = Math.max(document.documentElement.scrollTop, document.body.scrollTop);
+                mouseX = (event.clientX  + scrollLeft) - canvas.offsetLeft;
+                mouseY = (event.clientY + scrollTop) - canvas.offsetTop;
+
+                if ( mouseDown ) {
+
+                    draw( oldMouseX, oldMouseY, mouseX, mouseY, COLOR );
+
+                }
+
+                if ( !commands.length ) {
+
+                    commands.push( COMMAND_POSITION, mouseX.toString( 16 ), mouseY.toString( 16 ) );
+
+                } else if ( mouseDown ) {
+
+                    var deltaX = mouseX - oldMouseX;
+                    var deltaY = mouseY - oldMouseY;
+
+                    deltaX = deltaX == 0 ? "" : deltaX;
+                    deltaY = deltaY == 0 ? "" : deltaY;
+
+                    commands.push( COMMAND_POSITION, deltaX.toString( 16 ), deltaY.toString( 16 ) );
+
+                }
+
+            }
+
+            function onDocumentKeyDown( event ) {
+
+                switch( event.keyCode ) {
+
+                    case 32: // [ SPACE ]
+
+                        spaceKeyDown = true;
+
+                        break;
+                }
+
+            }
+
+            function onDocumentKeyUp( event ) {
+
+                switch( event.keyCode ) {
+
+                    case 32: // [ SPACE ]
+
+                        spaceKeyDown = false;
+
+                        break;
+                }
+
+            }
+
+            function onInputBoxKeyPress( event ) {
+
+                switch( event.keyCode ) {
+
+                    case 13: // [ RETURN ]
+
+                        var value = inputbox.value;
+
+                        if ( value != "" && value != lastMessage ) {
+
+                            lastMessage = value;
+                            sendMessage( value );
+                            addLocalMessage( value );
+
+                        }
+
+                        inputbox.value = "";
+
+                        break;
+                }
+
+            }
+
+            function onWindowResize( event ) {
+
+                SCREEN_HEIGHT = window.innerHeight;
+                panel.style.height = SCREEN_HEIGHT + 'px';
+                messagesDiv.style.maxHeight = ( SCREEN_HEIGHT - 220 ) + 'px';
+                messagesDiv.scrollTop = messagesDiv.scrollHeight;
+                messages.style.height = ( SCREEN_HEIGHT - 220 ) + 'px';
+
+            }
+
+            //
+
+            function addUser( id, level, nickname ) {
+
+                var user = users[ id ] = {
+
+                    idColor: Math.floor( Math.random() * 128 + 32 ) + ',' + Math.floor( Math.random() * 128 + 32 ) + ',' + Math.floor( Math.random() * 128 + 32 ),
+                    x: 0,
+                    y: 0,
+                    level: parseInt( level ),
+                    nickname: (nickname == '' || nickname === undefined) ? id : nickname.replace(/\</gi,'&lt;').replace(/\>/gi,'&gt;').replace(/\ /gi,'&nbsp;'),
+                    color: 0,
+                    mouseDown: false
+
+                };
+
+                var div = document.createElement( 'div' );
+                div.style.position = 'absolute';
+                div.style.visibility = 'hidden';
+                user.domElement = div;
+
+                var canvas = document.createElement( 'canvas' );
+                canvas.width = 16;
+                canvas.height = 16;
+
+                div.appendChild( canvas );
+
+                var context = canvas.getContext( '2d' );
+                context.lineWidth = 0.2;
+                context.fillStyle = 'rgba(' + user.idColor + ', 0.2)';
+                context.strokeStyle = 'rgb(' + user.idColor + ')';
+
+                context.beginPath();
+                context.arc( 8, 8, 6, 0, Math.PI * 2, true );
+                context.closePath();
+                context.fill();
+                context.stroke();
+
+                var nicknameDiv = document.createElement( 'span' );
+                nicknameDiv.style.position = 'absolute';
+                nicknameDiv.style.top = '3px';
+                nicknameDiv.style.left = '18px';
+                nicknameDiv.style.color = 'rgb(' + user.idColor + ')';
+                nicknameDiv.style.fontFamily = 'Helvetica, Arial';
+                nicknameDiv.style.fontSize = '9px';
+                nicknameDiv.innerHTML = user.nickname;
+                if ( user.level == 0 ) nicknameDiv.style.textDecoration = 'underline';
+                div.appendChild( nicknameDiv );
+
+                user.nicknameElement = nicknameDiv;
+
+                container.appendChild( user.domElement );
+            }
+
+            function setUserNickname( id, nickname ) {
+
+                users[ id ].nickname = nickname.replace(/\</gi,'&lt;').replace(/\>/gi,'&gt;').replace(/\ /gi,'&nbsp;');
+                users[ id ].nicknameElement.innerHTML = users[ id ].nickname;
+
+            }
+
+            function moveUser( id, x, y ) {
+
+                var user = users[ id ];
+
+                if ( user.mouseDown && user.x != 0 && user.y != 0 ) {
+
+                    draw( user.x, user.y, x, y, user.color );
+
+                }
+                
+                user.x = x;
+                user.y = y;
+
+                if(currentUserId == id) {
+                    return;
+                }
+
+                var element = user.domElement;
+                element.style.left = ( user.x - 8 ) + 'px';
+                element.style.top = ( user.y - 8 ) + 'px';
+                element.style.visibility = 'visible';
+
+            }
+
+            function removeUser( id ) {
+
+                var user = users[ id ];
+
+                if ( user && user.domElement) {
+
+                    container.removeChild( user.domElement );
+                    delete user;
+                    console.log('removed user');
+
+                }
+
+            }
+
+            function broadcast() {
+
+                if ( !commands.length || connection.readyState != 1 /*WebSocket.OPEN*/ ) {
+
+                    return;
+
+                }
+
+                connection.send( COMMAND +","+ commands.join(',') );
+                commands = [];
+
+            }
+
+            //
+
+            function draw( x1, y1, x2, y2, color ) {
+                color = 0;
+
+                var dx  = x2 - x1,
+                dy = y2 - y1,
+                d = Math.sqrt( dx * dx + dy * dy ) * 0.02;
+
+                context.strokeStyle = ( color == 0 ) ? 'rgba(0, 0, 0, ' + ( 0.7 - d )  + ')' : 'rgba(255, 255, 255, ' + ( 1 - d )  + ')';
+                context.beginPath();
+                context.moveTo( x1, y1 );
+                context.lineTo( x2, y2 );
+                context.closePath();
+                context.stroke();
+
+            }
+
+            function changeNickname() {
+
+                var nickname = prompt("Set your nickname. (Max 10 chars)");
+                if(nickname) {
+                    nickname = nickname.slice( 0, 10 ).replace(/\</gi,'&lt;').replace(/\>/gi,'&gt;').replace(/\ /gi,'&nbsp;');
+
+                    window.localStorage.nickname = nickname;
+
+                    setNickname( nickname );
+                }
+            }
+
+            function setColor( value ) {
+
+                switch( value ) {
+
+                    case 0:
+                        colorBlackButton.style.fontWeight = 'bold';
+                        colorWhiteButton.style.fontWeight = 'normal';
+                        break;
+
+                    case 1:
+                        colorBlackButton.style.fontWeight = 'normal';
+                        colorWhiteButton.style.fontWeight = 'bold';
+                        break;
+                }
+
+                COLOR = value;
+                connection.send( COMMAND_COLOR + ',' + value );
+
+            }
+
+            function setNickname( nickname ) {
+
+                nicknameSpan.innerHTML = nickname;
+
+                connection.send( COMMAND +','+ COMMAND_SETNICKNAME + ',' + nickname );
+
+            }
+
+            function addServerMessage( value ) {
+
+                var text = value.replace(/\</gi,'&lt;').replace(/\>/gi,'&gt;');
+
+                var messageDiv = document.createElement( 'div' );
+                messageDiv.style.width = '155px';
+                messageDiv.style.marginBottom = '5px';
+                messageDiv.style.overflow = 'hidden';
+                messageDiv.innerHTML = '<strong>' + text + '</strong>';
+
+                addMessageToStack( messageDiv );
+            }
+
+            function addMessage( id, value ) {
+
+                var user = users[ id ];
+                var text = value.replace(/\</gi,'&lt;').replace(/\>/gi,'&gt;');
+
+                var messageDiv = document.createElement( 'div' );
+                messageDiv.style.width = '155px';
+                messageDiv.style.marginBottom = '5px';
+                messageDiv.style.overflow = 'hidden';
+                messageDiv.style.color = 'rgb(' + user.idColor + ')';
+                messageDiv.innerHTML = '<strong>' + user.nickname + ':</strong> ' + text;
+                if ( user.level == 0 ) messageDiv.style.textDecoration = 'underline';
+
+                addMessageToStack( messageDiv );
+
+
+            }
+
+            function addLocalMessage( value ) {
+
+                var text = value.replace(/\</gi,'&lt;').replace(/\>/gi,'&gt;');
+
+                var messageDiv = document.createElement( 'div' );
+                messageDiv.style.width = '155px';
+                messageDiv.style.marginBottom = '5px';
+                messageDiv.style.overflow = 'hidden';
+                messageDiv.innerHTML = '<strong>' + nicknameSpan.innerHTML + ':</strong> ' + text;
+
+                addMessageToStack( messageDiv );
+
+                messagesDiv.appendChild( messageDiv );
+
+            }
+
+            function addMessageToStack( div ) {
+
+                messagesArray.push( div );
+
+                if ( messagesArray.length > 50 ) {
+
+                    messagesDiv.removeChild( messagesArray[ 0 ] );
+                    messagesArray.shift();
+
+                }
+
+                messagesDiv.appendChild( div );
+                messagesDiv.scrollTop = messagesDiv.scrollHeight;
+
+            }
+
+            function sendMessage( value ) {
+
+                connection.send( COMMAND + ',' + COMMAND_MESSAGE + ',' + value );
+
+            }
+
+            function saveDrawing() {
+
+                // window.open( canvas.toDataURL( 'image/png' ), 'mywindow' );
+
+                // Thanks to @Befzz for this fix
+
+                if ( window.sf_win ) window.sf_win.close();
+
+                window.sf_win = window.open( 'about:blank', Math.random() * Math.random(), '' );
+                window.sf_win.document.write( "<body style='background-color:#ddd;'><a onclick='update_img()' style='text-decoration:underline;cursor:pointer;color:#44f;'>Update Image</a></br><img id='p_img' width='800px' ><script>document.title='Saving Canvas';function update_img(){document.getElementById('p_img').src=opener.canvas.toDataURL( 'image/png' );};update_img();<\/script>" );
+
+            }
+
+        </script>
+        <script language="javascript">
+            setTimeout(function() {
+                changeNickname();
+            }, 1000);
+        </script>
+    </body>
+</html>
+

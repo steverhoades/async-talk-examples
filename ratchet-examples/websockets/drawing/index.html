@@ -214,26 +214,19 @@
 
         <div id="panel">
             <table style="width: 100%; padding: 10px;"><tr><td>
-
-                <p><strong><a href="https://github.com/steverhoades/async-talk-examples">Multi-User Sketchpad</a><br /> by <a href="http://twitter.com/steverhoades">Steve Rhoades</a></strong></p>
-                Save: <a onclick="saveDrawing()">.png</a><br />
-                <div style='position: relative; margin-top:15px;'>
-                    <div style='float:left'><strong>Change Color:</strong></div><div style='float:left;margin-left: 10px;'> <input type="text" id="color_box" value="#000000" size="7" /></div>
-                    <div style='clear:both'></div>
-                </div>
+                        <p><strong><a href="https://github.com/steverhoades/async-talk-examples">Multi-User Sketchpad</a><br /> by <a href="http://twitter.com/steverhoades">Steve Rhoades</a></strong><br />
+                        <span style='font-size: 8px'>Powered by <a href="https://github.com/reactphp">ReactPHP</a></span></p>
+                <strong>Change Pencil Color:</strong><br> <input type="text" id="color_box" value="#000000" size="7" /><br />
+                Save As: <a onclick="saveDrawing()">.png</a><br /> 
                 <hr />
             </td></tr>
             <tr><td id="messages" style="vertical-align: bottom">
                 <div id="messagesDiv" style="overflow: hidden">
                 </div>
-
+                <p><strong>You Are: <span id="nickname"></span></strong> <br /><a onclick="changeNickname()">Change Nickname</a></p>
             </td></tr>
             <tr><td>
-
-                <br />
-                <strong><span id="nickname"></span></strong> <a onclick="changeNickname()">Change</a><br />
-                <input id="inputbox" type="text" maxlength="40" placeholder="..." />
-
+                   <input id="inputbox" type="text" maxlength="40" placeholder="Chat Message Here" />
             </td></tr></table>
         </div>
 

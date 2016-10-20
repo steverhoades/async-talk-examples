@@ -1,0 +1,7 @@
+# TODO
+- [ ] add file server to the http server and move assets out of the index.html file
+- [ ] clean up the layout, remove the use of tables
+- [ ] add instruction to how to connect this to a users own ws server
+    - show where to change the ws connection in the readme
+    - show instructions on how to start the server
+

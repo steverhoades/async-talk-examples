@@ -4,6 +4,18 @@
     <head>
         <title>Multiuser Sketchpad</title>
         <meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+        
+        <script>
+/*!
+ * ==========================================================
+ *  COLOR PICKER PLUGIN 1.0.0
+ * ==========================================================
+ * Author: Taufik Nurrohman <http://latitudu.com>
+ * License: MIT
+ * ----------------------------------------------------------
+ */
+var CP=function(t){function e(t){return void 0!==t}function n(t,e,n){return e>t?t=e:t>n&&(t=n),t}function r(t){var e,n,r,o,s,c,u,i,a=+t[0],f=+t[1],l=+t[2];switch(o=Math.floor(6*a),s=6*a-o,c=l*(1-f),u=l*(1-s*f),i=l*(1-(1-s)*f),isNaN(o)&&(o=0),isNaN(u)&&(u=0),isNaN(i)&&(i=0),o%6){case 0:e=l,n=i,r=c;break;case 1:e=u,n=l,r=c;break;case 2:e=c,n=l,r=i;break;case 3:e=c,n=u,r=l;break;case 4:e=i,n=c,r=l;break;case 5:e=l,n=c,r=u}return[Math.round(255*e),Math.round(255*n),Math.round(255*r)]}function o(t){return c(r(t))}function s(t){var e,n=+t[0],r=+t[1],o=+t[2],s=Math.max(n,r,o),c=Math.min(n,r,o),u=s-c,i=0===s?0:u/s,a=s/255;switch(s){case c:e=0;break;case n:e=r-o+u*(o>r?6:0),e/=6*u;break;case r:e=o-n+2*u,e/=6*u;break;case o:e=n-r+4*u,e/=6*u}return[e,i,a]}function c(t){var e=+t[2]|+t[1]<<8|+t[0]<<16;return e="000000"+e.toString(16),e.slice(-6)}function u(t){return s(i(t))}function i(t){return 3===t.length&&(t=t.replace(/./g,"$&$&")),[parseInt(t[0]+t[1],16),parseInt(t[2]+t[3],16),parseInt(t[4]+t[5],16)]}function a(t){return[+t[0]/360,+t[1]/100,+t[2]/100]}function f(t){return[Math.round(360*+t[0]),Math.round(100*+t[1]),Math.round(100*+t[2])]}function l(t,e,n){return e.addEventListener(t,n,!1)}function p(t,e,n){return e.removeEventListener(t,n)}function h(t,e){for(var n=e.touches?e.touches[0].pageX:e.pageX,r=e.touches?e.touches[0].pageY:e.pageY,o=d(t).l,s=d(t).t;t=t.offsetParent;)o+=d(t).l,s+=d(t).t;return{x:n-o,y:r-s}}function d(t){return{l:t.offsetLeft,t:t.offsetTop}}function v(t){return{w:t.offsetWidth,h:t.offsetHeight}}function g(t){return S||(e(t)?t:!1)}function m(t){S=t}function y(t,n,r){return e(t)?e(n)?(e(N[t])||(N[t]={}),e(r)||(r=Object.keys(N[t]).length),N[t][r]=n,E):N[t]:N}function k(t,n){return e(t)?e(n)?(delete N[t][n],E):(N[t]={},E):(N={},E)}function x(t,n,r){if(!e(N[t]))return E;if(e(r))e(N[t][r])&&N[t][r].apply(E,n);else for(var o in N[t])N[t][o].apply(E,n);return E}function H(){var e=v(G).w,n=w.innerHeight,r=Math.max(B.scrollLeft,G.scrollLeft),o=Math.max(B.scrollTop,G.scrollTop),s=e+r,c=n+o;return D=d(t).l,Y=d(t).t+v(t).h,D+z>s&&(D=s-z),Y+A>c&&(Y=c-A),V.style.left=D+"px",V.style.top=Y+"px",x("fit",[E]),E}function b(e){function s(t){b(),x("click",[E]),t.stopPropagation(),t.preventDefault()}function c(t){var e=(r(R),r([R[0],1,1]));$.style.backgroundColor="rgb("+e.join(",")+")",m(R),t&&t.preventDefault()}function u(t){var e=n(h(T,t).y,0,S);R[0]=(S-e)/S,_.style.top=e-L/2+"px",c(t)}function i(t){var e=h($,t),r=n(e.x,0,N),o=n(e.y,0,G);R[1]=1-(N-r)/N,R[2]=(G-o)/G,j.style.right=N-r-D/2+"px",j.style.top=o-Y/2+"px",c(t)}function a(t){I&&(u(t),k=o(R),x("drag:h",[k,E]),x("drag",[k,E])),P&&(i(t),k=o(R),x("drag:sv",[k,E]),x("drag",[k,E]))}function f(){e||(k=o(R),x("stop:"+(I?"h":"sv"),[k,E]),x("stop",[k,E])),I=!1,P=!1}function d(t){I=!0,u(t),x("start:h",[E]),x("start",[E])}function y(t){P=!0,i(t),x("start:sv",[E]),x("start",[E])}e||B.appendChild(V),z=v(V).w,A=v(V).h;var k,S=v(T).h,N=v($).w,G=v($).h,L=v(_).h,D=v(j).w,Y=v(j).h;e?(V.style.left="-9999px",V.style.top="-9999px",l("resize",w,H),l("click",t,s),E.create=function(){return b(1),x("create",[E]),E},E.destroy=function(){return p("click",t,s),m(!1),C(),x("destroy",[E]),E}):(H(),x("enter",[E])),X=function(){R=g(R),c(),_.style.top=S-L/2-S*+R[0]+"px",j.style.right=N-D/2-N*+R[1]+"px",j.style.top=G-Y/2-G*+R[2]+"px"},C=function(){return V.parentNode&&B.removeChild(V),p("touchmove",M,a),p("mousemove",M,a),p("touchend",M,f),p("mouseup",M,f),p("touchdown",M,C),p("click",M,C),x("exit",[E]),E},X(),l("touchstart",T,d),l("mousedown",T,d),l("touchstart",$,y),l("mousedown",$,y),l("touchmove",M,a),l("mousemove",M,a),l("touchend",M,f),l("mouseup",M,f),l("touchdown",M,C),l("click",M,C)}var w=window,M=document,E=this,S=!1,N={},V=M.createElement("div");E.parse=function(t){if("object"==typeof t)return t;var e=/\s*rgb\s*\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)\s*\)\s*$/i.exec(t),n=/\s*hsv\s*\(\s*(\d+)\s*,\s*(\d+)%\s*,\s*(\d+)%\s*\)\s*$/i.exec(t),r="#"===t[0]&&t.match(/^#([\da-f]{3}|[\da-f]{6})$/);return r?u(t.slice(1)):n?a([+n[1],+n[2],+n[3]]):e?s([+e[1],+e[2],+e[3]]):[0,1,1]},m(E.parse(t.getAttribute("data-color")||t.value||[0,1,1])),V.className="color-picker",V.innerHTML='<div class="color-picker-control"><span class="color-picker-h"><i></i></span><span class="color-picker-sv"><i></i></span></div>';var X,C,B=M.body,G=M.documentElement,L=V.firstChild.children,R=g([0,1,1]),T=L[0],$=L[1],_=T.firstChild,j=$.firstChild,I=!1,P=!1,D=0,Y=0,z=0,A=0;return b(1),w.setTimeout(function(){x("create",[o(R),E])},.1),E.target=t,E.picker=V,E.on=y,E.off=k,E.trigger=x,E.fit=H,E.set=function(t){return e(t)?("string"==typeof t&&(t=E.parse(t)),m(t),X(),E):g()},E.HSV2RGB=function(t){return r(a(t))},E._HSV2RGB=r,E.HSV2HEX=function(t){return o(a(t))},E._HSV2HEX=o,E.RGB2HSV=function(t){return f(s(t))},E._RGB2HSV=s,E.RGB2HEX=c,E.HEX2HSV=function(t){return f(u(t))},E._HEX2HSV=u,E.HEX2RGB=i,E.hooks=N,E.enter=b,E.exit=C,E};
+        </script>
         <style type="text/css">
             body {
                 background-color:#f0f0f0;
@@ -70,6 +82,129 @@
                 border: 0;
                 background-color:#f0f0f0;
             }
+.color-picker {
+    position: absolute;
+    top: 0;
+    left: 0;
+    z-index: 9999
+}
+
+.color-picker-control {
+    width: 170px;
+    height: 150px;
+    border: 1px solid #000;
+    -webkit-box-shadow: 1px 5px 10px rgba(0,0,0,.5);
+    -moz-box-shadow: 1px 5px 10px rgba(0,0,0,.5);
+    box-shadow: 1px 5px 10px rgba(0,0,0,.5)
+}
+
+.color-picker-control:after {
+    content: " ";
+    display: table;
+    clear: both
+}
+
+.color-picker i {
+    font: inherit
+}
+
+.color-picker-h {
+    position: relative;
+    width: 19px;
+    height: 150px;
+    float: right;
+    border-left: 1px solid;
+    border-color: inherit;
+    cursor: ns-resize;
+    background: transparent url(color-picker-h.png) no-repeat 50% 50%;
+    background-image: -webkit-linear-gradient(to top,#f00 0,#ff0 17%,#0f0 33%,#0ff 50%,#00f 67%,#f0f 83%,#f00 100%);
+    background-image: -moz-linear-gradient(to top,#f00 0,#ff0 17%,#0f0 33%,#0ff 50%,#00f 67%,#f0f 83%,#f00 100%);
+    background-image: linear-gradient(to top,#f00 0,#ff0 17%,#0f0 33%,#0ff 50%,#00f 67%,#f0f 83%,#f00 100%);
+    -webkit-background-size: 100% 100%;
+    -moz-background-size: 100% 100%;
+    background-size: 100% 100%;
+    overflow: hidden
+}
+
+.color-picker-h i {
+    position: absolute;
+    top: -3px;
+    right: 0;
+    left: 0;
+    z-index: 3;
+    display: block;
+    height: 6px
+}
+
+.color-picker-h i:before {
+    content: "";
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    display: block;
+    border: 3px solid;
+    border-color: inherit;
+    border-top-color: transparent;
+    border-bottom-color: transparent
+}
+
+.color-picker-h i:after {
+    top: -1px;
+    right: -1px;
+    bottom: -1px;
+    left: -1px;
+    border-color: #000
+}
+
+.color-picker-sv {
+    position: relative;
+    width: 150px;
+    height: 150px;
+    float: left;
+    background: transparent url(color-picker-sv.png) no-repeat 50% 50%;
+    background-image: -webkit-linear-gradient(to top,#000,rgba(0,0,0,0)),linear-gradient(to right,#fff,rgba(255,255,255,0));
+    background-image: -moz-linear-gradient(to top,#000,rgba(0,0,0,0)),linear-gradient(to right,#fff,rgba(255,255,255,0));
+    background-image: linear-gradient(to top,#000,rgba(0,0,0,0)),linear-gradient(to right,#fff,rgba(255,255,255,0));
+    -webkit-background-size: 100% 100%;
+    -moz-background-size: 100% 100%;
+    background-size: 100% 100%;
+    cursor: crosshair
+}
+
+.color-picker-sv i {
+    position: absolute;
+    top: -4px;
+    right: -4px;
+    z-index: 3;
+    display: block;
+    width: 8px;
+    height: 8px
+}
+
+.color-picker-sv i:before,.color-picker-sv i:after {
+    content: "";
+    position: absolute;
+    top: -1px;
+    right: -1px;
+    bottom: -1px;
+    left: -1px;
+    display: block;
+    border: 1px solid #fff;
+    -webkit-border-radius: 100%;
+    -moz-border-radius: 100%;
+    border-radius: 100%
+}
+
+.color-picker-sv i:after {
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    border-color: #000
+}
+
         </style>
     </head>
     <body>
@@ -81,14 +216,15 @@
         <div id="panel">
             <table style="width: 100%; padding: 10px;"><tr><td>
 
-                <p><strong>Multiuser Sketchpad<br />Originally by mrdoob</strong></p>
+                <p><strong>Multiuser Sketchpad<br /> by Steve Rhoades</strong></p>
                 Save: <a onclick="saveDrawing()">.png</a><br />
-
+                <div style='position: relative; margin-top:15px;'>
+                    <div style='float:left'><strong>Change Color:</strong></div><div style='float:left;margin-left: 10px;'> <input type="text" id="color_box" value="#000000" size="7" /></div>
+                    <div style='clear:both'></div>
+                </div>
                 <hr />
-
             </td></tr>
             <tr><td id="messages" style="vertical-align: bottom">
-
                 <div id="messagesDiv" style="overflow: hidden">
                 </div>
 
@@ -112,7 +248,8 @@
             SCREEN_WIDTH = window.innerWidth,
             SCREEN_HEIGHT = window.innerHeight,
             CANVAS_WIDTH = 2048,
-            CANVAS_HEIGHT = 2048;
+            CANVAS_HEIGHT = 2048,
+            DELIMITER = "|";
 
             var USER_LIST = 0, USER_ID = 1, USER_CONNECTED = 2, USER_DISCONNECTED = 3, COMMAND = 4,
             COMMAND_SETNICKNAME = 0, COMMAND_POSITION = 1, COMMAND_MOUSEDOWN = 2, COMMAND_MESSAGE = 3, COMMAND_COLOR = 4;
@@ -129,7 +266,7 @@
 
                 connection.onmessage = function( event ) {
 
-                    var dataArray = event.data.split( ',' );
+                    var dataArray = event.data.split( DELIMITER );
                     var dataLength = dataArray.length;
                     var userId = dataArray[ 0 ];
                     var position = 1;
@@ -191,9 +328,8 @@
                                 switch ( parseInt( dataArray[ position++ ] ) ) {
 
                                     case COMMAND_COLOR:
-
-                                        users[ userId ].color = parseInt( dataArray[ position++ ] );
-
+                                        var colorVal = dataArray[ position++ ];
+                                        users[ userId ].color = (colorVal == 0) ? colorVal : JSON.parse(colorVal);
                                         break;
 
                                     case COMMAND_SETNICKNAME:
@@ -207,11 +343,13 @@
 
                                         var x = parseInt( dataArray[ position++ ], 16 );
                                         var y = parseInt( dataArray[ position++ ], 16 );
+                                        var colorVal = dataArray[ position++ ];
+                                        var color = (colorVal == 0) ? colorVal : JSON.parse(colorVal);
 
                                         userMouseX += x ? x : 0;
                                         userMouseY += y ? y : 0;
 
-                                        moveUser( userId, userMouseX, userMouseY );
+                                        moveUser( userId, userMouseX, userMouseY, color );
 
                                         break;
 
@@ -238,7 +376,7 @@
                 };
             }
 
-            var COLOR = 0;
+            var COLOR = 0, COLOR_JSON = '';
 
             var colorBlackButton = document.getElementById( 'colorBlackButton' );
             var colorWhiteButton = document.getElementById( 'colorWhiteButton' );
@@ -278,6 +416,17 @@
             var inputbox = document.getElementById( 'inputbox' );
             inputbox.addEventListener( 'keypress', onInputBoxKeyPress, false );
 
+            var picker = new CP(document.querySelector('input[type="text"]'));
+            picker.on("drag", function(v, instance) {
+                    instance.target.value = '#' + v;
+                    setColor(v);
+            });
+
+            var colorSelect = document.getElementById('color_box');
+            colorSelect.addEventListener('focusout', function(event) { 
+                setColor(event.target.value); 
+            });
+
             onWindowResize();
 
             setInterval( broadcast, 100 );
@@ -313,8 +462,8 @@
 
                 //commands.push( COMMAND_MOUSEDOWN, 1 );
                 // send right away
-                connection.send("4,"+ COMMAND_MOUSEDOWN +",1");
-                commands.push( COMMAND_POSITION, mouseX.toString( 16 ), mouseY.toString( 16 ) );
+                connection.send("4"+ DELIMITER + COMMAND_MOUSEDOWN + DELIMITER +"1");
+                commands.push( COMMAND_POSITION, mouseX.toString( 16 ), mouseY.toString( 16 ), COLOR_JSON );
 
             }
 
@@ -325,7 +474,7 @@
 
                 //commands.push( COMMAND_MOUSEDOWN, 0 );
                 // send right away
-                connection.send("4,"+ COMMAND_MOUSEDOWN +",0");
+                connection.send("4" + DELIMITER + COMMAND_MOUSEDOWN + DELIMITER +"0");
 
             }
 
@@ -349,7 +498,7 @@
 
                 if ( !commands.length ) {
 
-                    commands.push( COMMAND_POSITION, mouseX.toString( 16 ), mouseY.toString( 16 ) );
+                    commands.push( COMMAND_POSITION, mouseX.toString( 16 ), mouseY.toString( 16 ), COLOR_JSON );
 
                 } else if ( mouseDown ) {
 
@@ -359,7 +508,7 @@
                     deltaX = deltaX == 0 ? "" : deltaX;
                     deltaY = deltaY == 0 ? "" : deltaY;
 
-                    commands.push( COMMAND_POSITION, deltaX.toString( 16 ), deltaY.toString( 16 ) );
+                    commands.push( COMMAND_POSITION, deltaX.toString( 16 ), deltaY.toString( 16 ), COLOR_JSON );
 
                 }
 
@@ -485,13 +634,13 @@
 
             }
 
-            function moveUser( id, x, y ) {
+            function moveUser( id, x, y, color ) {
 
                 var user = users[ id ];
 
                 if ( user.mouseDown && user.x != 0 && user.y != 0 ) {
 
-                    draw( user.x, user.y, x, y, user.color );
+                    draw( user.x, user.y, x, y, color );
 
                 }
                 
@@ -531,7 +680,7 @@
 
                 }
 
-                connection.send( COMMAND +","+ commands.join(',') );
+                connection.send( COMMAND + DELIMITER + commands.join(DELIMITER) );
                 commands = [];
 
             }
@@ -539,19 +688,26 @@
             //
 
             function draw( x1, y1, x2, y2, color ) {
-                color = 0;
-
                 var dx  = x2 - x1,
                 dy = y2 - y1,
                 d = Math.sqrt( dx * dx + dy * dy ) * 0.02;
 
-                context.strokeStyle = ( color == 0 ) ? 'rgba(0, 0, 0, ' + ( 0.7 - d )  + ')' : 'rgba(255, 255, 255, ' + ( 1 - d )  + ')';
+                context.strokeStyle = ( color == 0 ) ? 'rgba(0, 0, 0, ' + ( 0.7 - d )  + ')' : 'rgba('+ color.r +','+ color.g +','+ color.b +', ' + ( 1 - d )  + ')';
                 context.beginPath();
                 context.moveTo( x1, y1 );
                 context.lineTo( x2, y2 );
                 context.closePath();
                 context.stroke();
 
+            }
+
+            function hexToRgb(hex) {
+                var result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+                return result ? {
+                    r: parseInt(result[1], 16),
+                    g: parseInt(result[2], 16),
+                    b: parseInt(result[3], 16)
+                } : 0;
             }
 
             function changeNickname() {
@@ -581,8 +737,10 @@
                         break;
                 }
 
-                COLOR = value;
-                connection.send( COMMAND_COLOR + ',' + value );
+                COLOR = hexToRgb(value);
+                COLOR_JSON = JSON.stringify(COLOR);
+                var sendVar = (COLOR == 0) ? COLOR : JSON.stringify(COLOR);
+                connection.send(COMMAND + DELIMITER + COMMAND_COLOR + DELIMITER + sendVar );
 
             }
 
@@ -590,7 +748,7 @@
 
                 nicknameSpan.innerHTML = nickname;
 
-                connection.send( COMMAND +','+ COMMAND_SETNICKNAME + ',' + nickname );
+                connection.send( COMMAND + DELIMITER + COMMAND_SETNICKNAME + DELIMITER + nickname );
 
             }
 
@@ -659,7 +817,7 @@
 
             function sendMessage( value ) {
 
-                connection.send( COMMAND + ',' + COMMAND_MESSAGE + ',' + value );
+                connection.send( COMMAND + DELIMITER + COMMAND_MESSAGE + DELIMITER + value );
 
             }
 

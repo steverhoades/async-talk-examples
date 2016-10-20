@@ -44,7 +44,7 @@ To start the demo
 
 Proxy Server
 -----------------
-These demos were run using HAProxy.  
+These demos were run using HAProxy to proxy between the web server and the websocket server on the same domain.  The following configuration can be used with HAProxy 1.5.10+.
 
     global
         log 127.0.0.1   local0

@@ -43,7 +43,7 @@ class Server implements MessageComponentInterface
         $this->nicks[$this->id] = "Guest {$this->id}";
 
         // send user id
-        $conn->send($this->id . self::DELIMITER . self::USER_ID . self::DELIMITER . $this->nicks[$this->id]);
+        $this->sendDataToConnection($conn, [$this->id, self::USER_ID, $this->nicks[$this->id]]);
 
         // broadcast all existing users.
         $userList = [];
@@ -52,18 +52,24 @@ class Server implements MessageComponentInterface
                 $userList[] = $id . self::DELIMITER . $nick;
             }
         }
-        $conn->send($this->id . self::DELIMITER . self::USER_LIST .self::DELIMITER . join(self::DELIMITER, $userList));
+        $this->sendDataToConnection($conn, [$this->id, self::USER_LIST, join(self::DELIMITER, $userList)]);
 
-        // send current canvas state
-        $conn->send($this->id . self::DELIMITER . '4' . self::DELIMITER . '2' . self::DELIMITER . '1');
+            // send current canvas state
+        $this->sendDataToConnection($conn, [$this->id, '4', '2', '1']);
         foreach($this->drawState as $state) {
-            $conn->send($this->id . self::DELIMITER . $state);
+            $this->sendDataToConnection($conn, [$this->id, $state]);
         }
         //$conn->send("{$this->id},4,1,". join(",", $this->drawState));
-        $conn->send($this->id . self::DELIMITER .'4' . self::DELIMITER . '2' . self::DELIMITER . '0');
+        $this->sendDataToConnection($conn, [$this->id, '4', '2', '0']);
 
         // broadcast new user
         $this->onMessage($conn, self::USER_CONNECTED . self::DELIMITER . $this->id . self::DELIMITER . $this->nicks[$this->id]);
+    }
+
+    private function sendDataToConnection($conn, $data)
+    {
+        $data = (is_array($data)) ? join(self::DELIMITER, $data) : $data;
+        $conn->send($data);
     }
 
     /**

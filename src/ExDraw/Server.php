@@ -10,6 +10,7 @@ class Server implements MessageComponentInterface
     const USER_ID = 1;
     const USER_CONNECTED = 2;
     const USER_DISCONNECTED = 3;
+    const DELIMITER = "|";
 
     protected $clients;
     protected $id = 0;
@@ -42,27 +43,33 @@ class Server implements MessageComponentInterface
         $this->nicks[$this->id] = "Guest {$this->id}";
 
         // send user id
-        $conn->send("{$this->id},". self::USER_ID .",". $this->nicks[$this->id]);
+        $this->sendDataToConnection($conn, [$this->id, self::USER_ID, $this->nicks[$this->id]]);
 
         // broadcast all existing users.
         $userList = [];
         foreach($this->nicks as $id => $nick) {
             if($id != $this->id) {
-                $userList[] = "{$id},{$nick}";
+                $userList[] = $id . self::DELIMITER . $nick;
             }
         }
-        $conn->send("{$this->id},". self::USER_LIST .",". join(",", $userList));
+        $this->sendDataToConnection($conn, [$this->id, self::USER_LIST, join(self::DELIMITER, $userList)]);
 
-        // send current canvas state
-        $conn->send("{$this->id},4,2,1");
+            // send current canvas state
+        $this->sendDataToConnection($conn, [$this->id, '4', '2', '1']);
         foreach($this->drawState as $state) {
-            $conn->send("{$this->id},". $state);
+            $this->sendDataToConnection($conn, [$this->id, $state]);
         }
         //$conn->send("{$this->id},4,1,". join(",", $this->drawState));
-        $conn->send("{$this->id},4,2,0");
+        $this->sendDataToConnection($conn, [$this->id, '4', '2', '0']);
 
         // broadcast new user
-        $this->onMessage($conn, self::USER_CONNECTED . ",{$this->id},{$this->nicks[$this->id]}");
+        $this->onMessage($conn, self::USER_CONNECTED . self::DELIMITER . $this->id . self::DELIMITER . $this->nicks[$this->id]);
+    }
+
+    private function sendDataToConnection($conn, $data)
+    {
+        $data = (is_array($data)) ? join(self::DELIMITER, $data) : $data;
+        $conn->send($data);
     }
 
     /**
@@ -78,7 +85,7 @@ class Server implements MessageComponentInterface
         $id = $this->clients[$from];
 
         // check for nickname changes
-        $data = explode(",", $msg);
+        $data = explode(self::DELIMITER, $msg);
         if($data[0] == 4 && $data[1] == 0) {
             echo "storing nick {$data[2]}" .PHP_EOL;
             $this->nicks[$id] = $data[2];
@@ -89,12 +96,14 @@ class Server implements MessageComponentInterface
             //    $this->drawState[] = "4,1,". join(",", array_slice($data, 3));
             //}
         } else if($this->drawing[$id]) {
-            $this->drawState[] = join(",", $data);
+            $this->drawState[] = join(self::DELIMITER, $data);
+        } else if ($data[0] == 4 && $data[1] == 4) {
+            $this->drawState[] = join(self::DELIMITER, $data);
         }
 
         foreach($this->clients as $client) {
            if($from !== $client) {
-                $client->send($id .",". $msg);
+                $client->send($id . self::DELIMITER . $msg);
             }
         }
     }
@@ -108,7 +117,7 @@ class Server implements MessageComponentInterface
     {
         $id = $this->clients[$conn];
 
-        $this->onMessage($conn, self::USER_DISCONNECTED .",". $id .",". $this->nicks[$id]);
+        $this->onMessage($conn, self::USER_DISCONNECTED . self::DELIMITER . $id . self::DELIMITER . $this->nicks[$id]);
         unset($this->nicks[$id]);
         $this->clients->detach($conn);
         echo "closing connection for $id" . PHP_EOL;
